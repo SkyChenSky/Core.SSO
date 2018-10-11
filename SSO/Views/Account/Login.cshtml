@@ -1,0 +1,32 @@
+﻿@{
+    Layout = null;
+}
+<h1>这里SSO登录界面</h1>
+<div>
+    <form action="/Account/login" method="POST">
+        <table>
+            <tr>
+                <td>
+                    <input type="text" name="UserName" placeholder="用户名" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="password" name="Password" placeholder="密码" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="submit" value="提交" />
+                </td>
+            </tr>
+            @if (ViewBag.Error != null)
+            {
+                <tr>
+                    <td> <label style="color:red">@ViewBag.Error</label></td>
+                </tr>
+            }
+
+        </table>
+    </form>
+</div>

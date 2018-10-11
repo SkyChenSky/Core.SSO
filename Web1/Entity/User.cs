@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace SSO.Web.Core.Entity
+namespace Web1.Entity
 {
     public class User
     {

@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+@model List<List<string>>
+<h1>这里SSO,恭喜您登录成功！</h1>
+<a href="http://web1.cg.com/">Web1</a>
+<a href="http://web2.cg.com/">Web2</a>
+<form action="/Account/Logout" method="POST">
+    <input type="submit" value="注销" />
+</form>
+<table>
+
+    @foreach (var itemList in Model)
+    {
+        <tr>
+            @foreach (var item in itemList)
+            {
+                <td>@item</td>
+            }
+        </tr>
+    }
+</table>

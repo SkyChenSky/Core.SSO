@@ -1,18 +1,16 @@
 ﻿using System;
-using System.IO;
-using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SSO.Web.Core.Helper;
+using SSO.Helper;
 
-namespace SSO.Web.Core
+namespace SSO
 {
     public class Startup
     {
@@ -30,12 +28,9 @@ namespace SSO.Web.Core
                 .AddCookie(options =>
                {
                    options.Cookie.Name = "Token";
-#if !DEBUG
-                   options.Cookie.Domain = ".sso.com";
-#endif
+                   options.Cookie.Domain = ".cg.com";
                    options.Cookie.HttpOnly = true;
-                   options.Cookie.Expiration = DateTime.Now.AddMinutes(30).TimeOfDay;
-                   options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                   options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                    options.LoginPath = "/Account/Login";
                    options.LogoutPath = "/Account/Logout";
                    options.SlidingExpiration = true;
@@ -59,27 +54,45 @@ namespace SSO.Web.Core
             {
                 routes.MapRoute(
                     "default",
-                    "{controller=Account}/{action=Login}/{id?}");
+                    "{controller=Home}/{action=Index}/{id?}");
             });
         }
 
-        private class AesDataProtector : IDataProtector
+        private Task BuildRedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
         {
-            public IDataProtector CreateProtector(string purpose)
+            var currentUrl = new UriBuilder(context.RedirectUri);
+            var returnUrl = new UriBuilder
             {
-                return this;
-            }
-
-            public byte[] Protect(byte[] plaintext)
+                Host = currentUrl.Host,
+                Port = currentUrl.Port,
+                Path = context.Request.Path
+            };
+            var redirectUrl = new UriBuilder
             {
-                return AESHelper.Encrypt(plaintext, "!@#13487");
-            }
-
-            public byte[] Unprotect(byte[] protectedData)
-            {
-                return AESHelper.Decrypt(protectedData, "!@#13487");
-            }
+                Host = "sso.cg.com",
+                Path = currentUrl.Path,
+                Query = QueryString.Create(context.Options.ReturnUrlParameter, returnUrl.Uri.ToString()).Value
+            };
+            context.Response.Redirect(redirectUrl.Uri.ToString());
+            return Task.CompletedTask;
         }
 
+    }
+    internal class AesDataProtector : IDataProtector
+    {
+        public IDataProtector CreateProtector(string purpose)
+        {
+            return this;
+        }
+
+        public byte[] Protect(byte[] plaintext)
+        {
+            return AESHelper.Encrypt(plaintext, "!@#13487");
+        }
+
+        public byte[] Unprotect(byte[] protectedData)
+        {
+            return AESHelper.Decrypt(protectedData, "!@#13487");
+        }
     }
 }

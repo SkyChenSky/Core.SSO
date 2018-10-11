@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace SSO.Web.Core.Controllers
+namespace SSO.Controllers
 {
     [Authorize]
     public class HomeController : Controller
@@ -11,6 +11,11 @@ namespace SSO.Web.Core.Controllers
         public ActionResult Index()
         {
             return View(HttpContext.User.Claims.Select(c => new List<string> { c.Type, c.Value }).ToList());
+        }
+
+        public ActionResult About()
+        {
+            return View();
         }
     }
 }
