@@ -30,28 +30,12 @@ namespace Web1
                    options.Cookie.Name = "Token";
                    options.Cookie.Domain = ".cg.com";
                    options.Events.OnRedirectToLogin = BuildRedirectToLogin;
-                   options.Events.OnSigningOut = context =>
-                   {
-                       var returnUrl = new UriBuilder
-                       {
-                           Host = context.Request.Host.Host,
-                           Port = context.Request.Host.Port ?? 80,
-                       };
-                       var redirectUrl = new UriBuilder
-                       {
-                           Host = "sso.cg.com",
-                           Path = context.Options.LoginPath,
-                           Query = QueryString.Create(context.Options.ReturnUrlParameter, returnUrl.Uri.ToString()).Value
-                       };
-                       context.Response.Redirect(redirectUrl.Uri.ToString());
-                       return Task.CompletedTask;
-                   };
+                   options.Events.OnSigningOut = BuildSigningOut;
                    options.Cookie.HttpOnly = true;
                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                    options.LoginPath = "/Account/Login";
                    options.LogoutPath = "/Account/Logout";
                    options.SlidingExpiration = true;
-                   //options.DataProtectionProvider = DataProtectionProvider.Create(new DirectoryInfo(@"D:\sso\qwe"));
                    options.TicketDataFormat = new TicketDataFormat(new AesDataProtector());
                });
         }
@@ -75,7 +59,12 @@ namespace Web1
             });
         }
 
-        private Task BuildRedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
+        /// <summary>
+        /// 未登录下，引导跳转认证中心登录页面
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private static Task BuildRedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
         {
             var currentUrl = new UriBuilder(context.RedirectUri);
             var returnUrl = new UriBuilder
@@ -94,9 +83,32 @@ namespace Web1
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 注销，引导跳转认证中心登录页面
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private static Task BuildSigningOut(CookieSigningOutContext context)
+        {
+            var returnUrl = new UriBuilder
+            {
+                Host = context.Request.Host.Host,
+                Port = context.Request.Host.Port ?? 80,
+            };
+            var redirectUrl = new UriBuilder
+            {
+                Host = "sso.cg.com",
+                Path = context.Options.LoginPath,
+                Query = QueryString.Create(context.Options.ReturnUrlParameter, returnUrl.Uri.ToString()).Value
+            };
+            context.Response.Redirect(redirectUrl.Uri.ToString());
+            return Task.CompletedTask;
+        }
     }
     internal class AesDataProtector : IDataProtector
     {
+        private const string Key = "!@#13487";
+
         public IDataProtector CreateProtector(string purpose)
         {
             return this;
@@ -104,12 +116,12 @@ namespace Web1
 
         public byte[] Protect(byte[] plaintext)
         {
-            return AESHelper.Encrypt(plaintext, "!@#13487");
+            return AESHelper.Encrypt(plaintext, Key);
         }
 
         public byte[] Unprotect(byte[] protectedData)
         {
-            return AESHelper.Decrypt(protectedData, "!@#13487");
+            return AESHelper.Decrypt(protectedData, Key);
         }
     }
 }
