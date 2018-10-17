@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Authorization";
+}
+
+<h1>正在授权中，请稍等。。。。</h1>
+@using System.Web
+@model Web1.Model.Token.TokenViewData
+@if (Model != null)
+{
+    <script type="text/javascript">
+        var authorizeHostParams = "";
+        @{ var hostAuthorizationParams = "";}
+        @foreach (var item in Model.HostAuthorization)
+        {
+            hostAuthorizationParams += "&hostAuthorization=" + HttpUtility.UrlEncode(item);
+        }
+        window.location.href =
+            @Html.Raw($"'{Model.HostAuthorization[0]}?token={Model.Token}{hostAuthorizationParams}'")
+    </script>
+}
+

@@ -1,0 +1,71 @@
+﻿@{
+    Layout = null;
+}
+<script src="~/jquery-1.10.2.js"></script>
+<script src="~/jquery.form.js"></script>
+<script>
+    $(function () {
+        $("#submit").click(function () {
+            $("#postForm").ajaxSubmit(function (result) {
+                if (result.success) {
+                    var token = getToken();
+                    if (token) {
+                        var authorizeHostArray = new Array(
+                            "http://www.web1.com/Token/Authorization",
+                            "http://www.web2.com/Token/Authorization"
+                        );
+                        var authorizeHostParams = "";
+                        authorizeHostArray.forEach(function (item) {
+                            authorizeHostParams += "&hostAuthorization=" + item;
+                        });
+                        window.location.href = authorizeHostArray[0] + "?token=" + token + authorizeHostParams;
+                    }
+                } else {
+                    alert(result.msg);
+                }
+            });
+        });
+
+        function getToken() {
+            var token = null;
+            $.ajax({
+                url: "/api/Token",
+                type: "GET",
+                async: false,
+                success: function (d) {
+                    token = d.token;
+                }
+            });
+            return token;
+        }
+    });
+</script>
+<h1>这里SSO登录界面</h1>
+<div>
+    <form id="postForm" action="/Account/login" method="POST">
+        <table>
+            <tr>
+                <td>
+                    <input type="text" name="UserName" placeholder="用户名" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="password" name="Password" placeholder="密码" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input id="submit" type="button" value="提交" />
+                </td>
+            </tr>
+            @if (ViewBag.Error != null)
+            {
+                <tr>
+                    <td> <label style="color: red">@ViewBag.Error</label></td>
+                </tr>
+            }
+
+        </table>
+    </form>
+</div>
